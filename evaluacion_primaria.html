@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evaluación de Período — Sede Escuela Rural Santafe</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --verde: #2d6a4f; --verde-claro: #52b788; --verde-suave: #b7e4c7;
+    --amarillo: #f4a261; --rojo: #e63946; --azul: #1d3557; --azul-medio: #457b9d;
+    --blanco: #f8f9fa; --gris: #6c757d; --gris-claro: #e9ecef;
+    --sombra: 0 4px 20px rgba(0,0,0,0.1); --radio: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Nunito', sans-serif; background: linear-gradient(135deg,#e8f5e9,#f1f8e9,#e3f2fd); min-height:100vh; color:var(--azul); }
+
+  #pantalla-inicio { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:30px 20px; }
+  .logo-escuela { background:var(--verde); color:white; width:80px; height:80px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:36px; margin-bottom:16px; box-shadow:0 6px 24px rgba(45,106,79,0.4); }
+  .nombre-escuela { font-family:'Baloo 2',cursive; font-size:15px; color:var(--verde); font-weight:700; text-align:center; margin-bottom:6px; }
+  .titulo-principal { font-family:'Baloo 2',cursive; font-size:28px; font-weight:800; color:var(--azul); text-align:center; margin-bottom:30px; line-height:1.2; }
+  .card-inicio { background:white; border-radius:24px; padding:36px 32px; width:100%; max-width:480px; box-shadow:var(--sombra); }
+  .campo-label { font-weight:700; font-size:14px; color:var(--gris); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; margin-top:20px; }
+  .campo-label:first-child { margin-top:0; }
+  input[type="text"], select { width:100%; padding:14px 18px; border:2px solid var(--gris-claro); border-radius:var(--radio); font-family:'Nunito',sans-serif; font-size:16px; font-weight:600; color:var(--azul); background:var(--blanco); outline:none; transition:border-color 0.2s; appearance:none; }
+  input[type="text"]:focus, select:focus { border-color:var(--verde-claro); }
+  .btn-iniciar { width:100%; margin-top:28px; padding:16px; background:linear-gradient(135deg,var(--verde),var(--verde-claro)); color:white; border:none; border-radius:var(--radio); font-family:'Baloo 2',cursive; font-size:20px; font-weight:700; cursor:pointer; box-shadow:0 4px 16px rgba(45,106,79,0.35); transition:transform 0.15s; }
+  .btn-iniciar:hover { transform:translateY(-2px); }
+
+  .pendientes-card { background:#fff3cd; border-radius:20px; padding:20px 24px; box-shadow:var(--sombra); margin-bottom:20px; border-left:5px solid var(--amarillo); }
+  .pendientes-titulo { font-weight:800; color:#856404; margin-bottom:8px; font-size:15px; }
+  .pendientes-texto { font-size:13px; color:#856404; font-weight:600; }
+  .btn-sync-pendientes { margin-top:12px; padding:10px 20px; background:#f77f00; color:white; border:none; border-radius:var(--radio); font-family:'Nunito',sans-serif; font-weight:700; font-size:14px; cursor:pointer; transition:all 0.2s; }
+
+  #pantalla-evaluacion { display:none; padding:20px; max-width:760px; margin:0 auto; }
+  .header-eval { background:white; border-radius:20px; padding:20px 24px; margin-bottom:20px; box-shadow:var(--sombra); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  .info-estudiante { font-size:15px; font-weight:700; color:var(--azul); }
+  .info-estudiante span { color:var(--verde); }
+  .progreso-container { display:flex; align-items:center; gap:10px; }
+  .progreso-texto { font-size:13px; font-weight:700; color:var(--gris); white-space:nowrap; }
+  .barra-progreso { width:160px; height:10px; background:var(--gris-claro); border-radius:99px; overflow:hidden; }
+  .barra-fill { height:100%; background:linear-gradient(90deg,var(--verde),var(--verde-claro)); border-radius:99px; transition:width 0.4s; }
+
+  .tabs-areas { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+  .tab-area { padding:10px 18px; border-radius:99px; font-weight:700; font-size:14px; cursor:pointer; border:2px solid transparent; transition:all 0.2s; background:white; color:var(--gris); box-shadow:0 2px 8px rgba(0,0,0,0.07); position:relative; }
+  .tab-area.activo { background:var(--verde); color:white; border-color:var(--verde); }
+  .tab-area.completado { background:var(--verde-suave); color:var(--verde); border-color:var(--verde-suave); }
+  .tab-area .badge { position:absolute; top:-6px; right:-6px; background:var(--amarillo); color:var(--azul); font-size:10px; font-weight:800; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; }
+  .tab-area.completado .badge { background:var(--verde); color:white; }
+
+  .seccion-preguntas { display:none; }
+  .seccion-preguntas.activa { display:block; }
+  .pregunta-card { background:white; border-radius:20px; padding:24px; margin-bottom:16px; box-shadow:var(--sombra); border-left:5px solid var(--gris-claro); transition:border-color 0.3s; }
+  .pregunta-card.respondida { border-left-color:var(--verde-claro); }
+  .pregunta-meta { display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+  .num-pregunta { background:var(--azul); color:white; font-weight:800; font-size:13px; padding:4px 12px; border-radius:99px; }
+  .nivel-badge { font-size:12px; font-weight:700; padding:4px 12px; border-radius:99px; }
+  .nivel-basico { background:#d4edda; color:#155724; }
+  .nivel-medio { background:#fff3cd; color:#856404; }
+  .nivel-alto { background:#f8d7da; color:#721c24; }
+  .competencia-tag { font-size:11px; font-weight:600; color:var(--azul-medio); background:#e3f2fd; padding:3px 10px; border-radius:99px; }
+  .texto-pregunta { font-size:16px; font-weight:600; color:var(--azul); margin-bottom:16px; line-height:1.5; }
+  .opciones { display:flex; flex-direction:column; gap:10px; }
+  .opcion-label { display:flex; align-items:center; gap:12px; padding:12px 16px; border:2px solid var(--gris-claro); border-radius:var(--radio); cursor:pointer; font-weight:600; font-size:15px; transition:all 0.2s; user-select:none; }
+  .opcion-label:hover { border-color:var(--verde-claro); background:#f0fdf4; }
+  .opcion-label input[type="radio"] { display:none; }
+  .opcion-circulo { width:28px; height:28px; border-radius:50%; border:2px solid var(--gris-claro); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; flex-shrink:0; transition:all 0.2s; color:var(--gris); }
+  .opcion-label.seleccionada { border-color:var(--verde); background:#f0fdf4; }
+  .opcion-label.seleccionada .opcion-circulo { background:var(--verde); border-color:var(--verde); color:white; }
+
+  .nav-areas { display:flex; justify-content:space-between; align-items:center; margin-top:20px; margin-bottom:30px; gap:12px; }
+  .btn-nav { padding:12px 24px; border-radius:var(--radio); font-family:'Nunito',sans-serif; font-weight:700; font-size:15px; cursor:pointer; border:2px solid var(--gris-claro); background:white; color:var(--azul); transition:all 0.2s; }
+  .btn-nav:hover { border-color:var(--azul-medio); }
+  .btn-terminar { padding:14px 32px; background:linear-gradient(135deg,var(--amarillo),#f77f00); color:white; border:none; border-radius:var(--radio); font-family:'Baloo 2',cursive; font-size:18px; font-weight:700; cursor:pointer; box-shadow:0 4px 16px rgba(244,162,97,0.4); transition:all 0.2s; }
+  .btn-terminar:hover { transform:translateY(-2px); }
+  .btn-terminar:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+
+  #pantalla-resultados { display:none; padding:20px; max-width:760px; margin:0 auto; }
+  .resultado-header { background:linear-gradient(135deg,var(--verde),var(--azul)); border-radius:24px; padding:32px; color:white; text-align:center; margin-bottom:20px; }
+  .resultado-header h2 { font-family:'Baloo 2',cursive; font-size:26px; font-weight:800; margin-bottom:8px; }
+  .puntaje-total { font-size:64px; font-weight:900; font-family:'Baloo 2',cursive; line-height:1; }
+  .puntaje-label { font-size:16px; opacity:0.85; margin-top:4px; }
+  .resultado-areas { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:20px; }
+  .resultado-area-card { background:white; border-radius:20px; padding:20px; text-align:center; box-shadow:var(--sombra); }
+  .resultado-area-card .area-nombre { font-size:13px; font-weight:700; color:var(--gris); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; }
+  .resultado-area-card .area-puntaje { font-family:'Baloo 2',cursive; font-size:36px; font-weight:800; }
+  .resultado-area-card .area-de { font-size:13px; color:var(--gris); }
+  .resultado-area-card .barra-area { height:8px; background:var(--gris-claro); border-radius:99px; overflow:hidden; margin-top:10px; }
+  .barra-area-fill { height:100%; border-radius:99px; transition:width 1s; }
+  .falencias-card { background:white; border-radius:20px; padding:24px; box-shadow:var(--sombra); margin-bottom:20px; }
+  .falencias-titulo { font-family:'Baloo 2',cursive; font-size:18px; font-weight:700; color:var(--azul); margin-bottom:16px; }
+  .falencia-item { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--gris-claro); font-size:14px; font-weight:600; }
+  .falencia-item:last-child { border-bottom:none; }
+  .falencia-area { color:var(--azul-medio); font-size:12px; }
+  .falencia-nivel { font-size:11px; padding:3px 10px; border-radius:99px; font-weight:700; }
+  .botones-exportar { display:flex; flex-direction:column; gap:12px; margin-bottom:20px; }
+  .btn-sheets { width:100%; padding:18px; background:linear-gradient(135deg,#0f9d58,#34a853); color:white; border:none; border-radius:var(--radio); font-family:'Baloo 2',cursive; font-size:18px; font-weight:700; cursor:pointer; box-shadow:0 4px 16px rgba(15,157,88,0.3); transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:10px; }
+  .btn-sheets:hover { transform:translateY(-2px); }
+  .btn-sheets:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+  .btn-csv { width:100%; padding:16px; background:linear-gradient(135deg,#1d3557,#457b9d); color:white; border:none; border-radius:var(--radio); font-family:'Baloo 2',cursive; font-size:17px; font-weight:700; cursor:pointer; box-shadow:0 4px 16px rgba(29,53,87,0.3); transition:all 0.2s; }
+  .btn-csv:hover { transform:translateY(-2px); }
+  .estado-sync { text-align:center; font-size:14px; font-weight:700; padding:12px; border-radius:var(--radio); margin-top:4px; }
+  .sync-ok { background:#d4edda; color:#155724; }
+  .sync-error { background:#f8d7da; color:#721c24; }
+  .sync-enviando { background:#fff3cd; color:#856404; }
+  .aviso-csv { text-align:center; font-size:13px; color:var(--gris); font-weight:600; }
+</style>
+</head>
+<body>
+
+<div id="pantalla-inicio">
+  <div class="logo-escuela">🌿</div>
+  <div class="nombre-escuela">Sede Escuela Rural Santafe</div>
+  <div class="titulo-principal">Evaluación de<br>Período</div>
+  <div class="card-inicio">
+    <div id="aviso-pendientes" style="display:none" class="pendientes-card">
+      <div class="pendientes-titulo">📤 Evaluaciones pendientes de enviar</div>
+      <div class="pendientes-texto" id="texto-pendientes"></div>
+      <button class="btn-sync-pendientes" onclick="sincronizarPendientes()">Sincronizar ahora con Sheets</button>
+      <div id="estado-sync-inicio" class="estado-sync" style="display:none"></div>
+    </div>
+    <div class="campo-label">Nombre completo</div>
+    <input type="text" id="input-nombre" placeholder="Escribe tu nombre aquí..." />
+    <div class="campo-label">Grado</div>
+    <select id="input-grado">
+      <option value="">— Selecciona tu grado —</option>
+      <option value="1">Grado 1°</option>
+      <option value="3">Grado 3°</option>
+    </select>
+    <button class="btn-iniciar" onclick="iniciarEvaluacion()">¡Comenzar evaluación! 🚀</button>
+  </div>
+</div>
+
+<div id="pantalla-evaluacion">
+  <div class="header-eval">
+    <div class="info-estudiante">👤 <span id="nombre-display"></span> &nbsp;|&nbsp; 📚 Grado <span id="grado-display"></span>°</div>
+    <div class="progreso-container">
+      <div class="progreso-texto" id="texto-progreso">0 / 0</div>
+      <div class="barra-progreso"><div class="barra-fill" id="barra-progreso" style="width:0%"></div></div>
+    </div>
+  </div>
+  <div class="tabs-areas" id="tabs-areas"></div>
+  <div id="contenedor-preguntas"></div>
+  <div class="nav-areas">
+    <button class="btn-nav" id="btn-anterior" onclick="cambiarArea(-1)">← Área anterior</button>
+    <button class="btn-terminar" id="btn-terminar" onclick="terminarEvaluacion()" disabled>Terminar ✅</button>
+    <button class="btn-nav" id="btn-siguiente" onclick="cambiarArea(1)">Área siguiente →</button>
+  </div>
+</div>
+
+<div id="pantalla-resultados">
+  <div class="resultado-header">
+    <h2 id="res-nombre"></h2>
+    <div class="puntaje-total" id="res-puntaje">0%</div>
+    <div class="puntaje-label">Puntaje total de la evaluación</div>
+  </div>
+  <div class="resultado-areas" id="resultado-areas"></div>
+  <div class="falencias-card">
+    <div class="falencias-titulo">⚠️ Preguntas a reforzar</div>
+    <div id="lista-falencias"></div>
+  </div>
+  <div class="botones-exportar">
+    <button class="btn-sheets" id="btn-sheets" onclick="enviarASheets()">📊 Enviar a Google Sheets</button>
+    <div id="estado-sync-resultado" class="estado-sync" style="display:none"></div>
+    <button class="btn-csv" onclick="descargarCSV()">💾 Descargar CSV (respaldo sin internet)</button>
+    <div class="aviso-csv">Abre el CSV con Excel cuando no haya conexión</div>
+  </div>
+</div>
+
+<script>
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwE-yYE0hAheuETijdUa15LKlbvrfvDdubfOAfj1fjG3IWW5B_CNpUnj69jggyG6f-x9A/exec';
+const STORAGE_KEY = 'eval_pendientes_santafe';
+const AREAS = ['Matemáticas','Lenguaje','Ciencias Naturales','Ciencias Sociales'];
+const COLORES = { 'Matemáticas':'#2d6a4f','Lenguaje':'#1d3557','Ciencias Naturales':'#7b5e00','Ciencias Sociales':'#6b1f1f' };
+
+function crearPreguntas(grado) {
+  const n = grado === 1 ? 10 : 15;
+  const p = {
+    'Matemáticas': [
+      {t:'¿Cuánto es 5 + 3?',o:['6','8','7','9'],r:1,nv:'Básico',c:'Pensamiento numérico'},
+      {t:'¿Cuánto es 12 - 4?',o:['7','9','8','6'],r:2,nv:'Básico',c:'Pensamiento numérico'},
+      {t:'Tienes 3 manzanas y recibes 5 más. ¿Cuántas tienes?',o:['7','9','8','6'],r:2,nv:'Básico',c:'Resolución de problemas'},
+      {t:'¿Cuál número va después del 19?',o:['18','21','20','22'],r:2,nv:'Básico',c:'Pensamiento numérico'},
+      {t:'¿Cuánto es 4 × 3?',o:['10','14','12','11'],r:2,nv:'Medio',c:'Pensamiento numérico'},
+      {t:'¿Cuánto es 20 ÷ 4?',o:['4','6','5','3'],r:2,nv:'Medio',c:'Pensamiento numérico'},
+      {t:'¿Qué figura tiene 4 lados iguales?',o:['Triángulo','Círculo','Cuadrado','Rectángulo'],r:2,nv:'Básico',c:'Pensamiento espacial'},
+      {t:'¿Cuántos lados tiene un triángulo?',o:['4','2','3','5'],r:2,nv:'Básico',c:'Pensamiento espacial'},
+      {t:'Un granjero tiene 24 gallinas en 4 corrales iguales. ¿Cuántas por corral?',o:['5','8','6','4'],r:2,nv:'Alto',c:'Resolución de problemas'},
+      {t:'¿Cuál es el número par?',o:['7','9','12','11'],r:2,nv:'Medio',c:'Pensamiento numérico'},
+      {t:'¿Qué es una fracción?',o:['Un número entero','Una parte de un todo','Un número negativo','Una operación'],r:1,nv:'Medio',c:'Pensamiento numérico'},
+      {t:'¿Cuánto es la mitad de 18?',o:['8','10','9','7'],r:2,nv:'Medio',c:'Pensamiento numérico'},
+      {t:'El perímetro de un cuadrado es 20 cm. ¿Cuánto mide cada lado?',o:['4 cm','6 cm','5 cm','3 cm'],r:2,nv:'Alto',c:'Pensamiento métrico'},
+      {t:'¿Cuál número es mayor: 345 o 354?',o:['345','Son iguales','354','No se sabe'],r:2,nv:'Medio',c:'Pensamiento numérico'},
+      {t:'En la huerta hay 3 filas de 7 plantas. ¿Cuántas plantas hay?',o:['18','24','21','14'],r:2,nv:'Alto',c:'Resolución de problemas'},
+    ],
+    'Lenguaje': [
+      {t:'¿Qué es una vocal?',o:['Una consonante','Una sílaba','Una letra que suena sola','Una palabra'],r:2,nv:'Básico',c:'Comprensión lectora'},
+      {t:'¿Cuántas sílabas tiene "mariposa"?',o:['3','5','4','6'],r:2,nv:'Básico',c:'Comprensión lectora'},
+      {t:'"El perro corre en el campo." ¿Quién corre?',o:['El campo','El niño','El perro','El gato'],r:2,nv:'Básico',c:'Comprensión lectora'},
+      {t:'¿Qué palabra es un sustantivo?',o:['Correr','Rápido','Árbol','Bonito'],r:2,nv:'Medio',c:'Gramática'},
+      {t:'¿Qué signo va al final de una pregunta?',o:['.','!','?',','],r:2,nv:'Básico',c:'Escritura'},
+      {t:'¿Cuál es el sinónimo de "feliz"?',o:['Triste','Enojado','Alegre','Aburrido'],r:2,nv:'Medio',c:'Vocabulario'},
+      {t:'¿Qué es un párrafo?',o:['Una palabra','Una oración','Conjunto de oraciones sobre un tema','Un título'],r:2,nv:'Medio',c:'Comprensión lectora'},
+      {t:'Ordena: escuela / a / niños / van / los / la',o:['La los niños van escuela a','Los niños van a la escuela','Van los niños a escuela la','Niños los van la a escuela'],r:1,nv:'Medio',c:'Gramática'},
+      {t:'¿Cuál palabra tiene tilde?',o:['mesa','casa','árbol','libro'],r:2,nv:'Medio',c:'Ortografía'},
+      {t:'¿Qué hace un autor al escribir un cuento?',o:['Lee','Narra una historia','Canta','Dibuja'],r:1,nv:'Básico',c:'Comprensión lectora'},
+      {t:'"La vaca paría terneros cada año." ¿Cuál es la idea principal?',o:['La finca es grande','La vaca tenía terneros anualmente','Los terneros corrían','La vaca comía pasto'],r:1,nv:'Alto',c:'Comprensión lectora'},
+      {t:'¿Cuál es el antónimo de "alto"?',o:['Grande','Fuerte','Bajo','Largo'],r:2,nv:'Medio',c:'Vocabulario'},
+      {t:'"Amalia ayudaba a su abuela a recoger café." ¿Qué nos dice de Amalia?',o:['Es perezosa','Es responsable','No le gusta el campo','Nunca trabaja'],r:1,nv:'Alto',c:'Comprensión lectora'},
+      {t:'¿Qué es un verbo?',o:['Nombre de cosa','Palabra de acción','Palabra descriptiva','Palabra de unión'],r:1,nv:'Medio',c:'Gramática'},
+      {t:'¿Cuál oración está bien escrita?',o:['el perro corre.','El perro corre.','el Perro corre.','El perro Corre.'],r:1,nv:'Alto',c:'Escritura'},
+    ],
+    'Ciencias Naturales': [
+      {t:'¿Qué necesitan las plantas para vivir?',o:['Solo agua','Agua, luz y tierra','Solo luz','Solo tierra'],r:1,nv:'Básico',c:'Entorno vivo'},
+      {t:'¿Cuáles son los tres estados del agua?',o:['Sólido, líquido, gaseoso','Duro, blando, suave','Frío, caliente, tibio','Grande, mediano, pequeño'],r:0,nv:'Básico',c:'Entorno físico'},
+      {t:'¿Qué animal es mamífero?',o:['Gallina','Serpiente','Vaca','Rana'],r:2,nv:'Básico',c:'Entorno vivo'},
+      {t:'¿Cómo se llama el proceso por el que las plantas producen su alimento?',o:['Respiración','Digestión','Fotosíntesis','Germinación'],r:2,nv:'Medio',c:'Entorno vivo'},
+      {t:'¿Qué órgano bombea la sangre?',o:['Pulmón','Estómago','Corazón','Cerebro'],r:2,nv:'Básico',c:'Ser humano y salud'},
+      {t:'¿Cuál es una fuente de energía renovable?',o:['Petróleo','Gas natural','Carbón','Sol'],r:3,nv:'Medio',c:'Entorno físico'},
+      {t:'¿Qué es la cadena alimentaria?',o:['Cómo los seres vivos se alimentan entre sí','La lista de la tienda','El menú del restaurante','El ciclo del agua'],r:0,nv:'Alto',c:'Entorno vivo'},
+      {t:'¿Qué hacen los ríos con la tierra que arrastran?',o:['La queman','La depositan en otros lugares','La desaparecen','La convierten en gas'],r:1,nv:'Medio',c:'Entorno físico'},
+      {t:'¿Qué beneficio dan las lombrices al suelo?',o:['Lo endurecen','Lo envenenan','Lo fertilizan','Lo secan'],r:2,nv:'Alto',c:'Entorno vivo'},
+      {t:'¿Qué es la biodiversidad?',o:['Tener muchas plantas','Variedad de seres vivos en un lugar','Solo los animales','Los ríos y montañas'],r:1,nv:'Alto',c:'Entorno vivo'},
+      {t:'¿Cuál es un recurso natural?',o:['Un carro','El agua','Una silla','Un televisor'],r:1,nv:'Básico',c:'Entorno físico'},
+      {t:'¿Por qué debemos cuidar el agua?',o:['Es infinita','Es un recurso limitado y vital','Es cara','Lo dice la ley'],r:1,nv:'Medio',c:'Ser humano y salud'},
+      {t:'¿Qué función tienen los pulmones?',o:['Bombear sangre','Digerir alimentos','Respirar e intercambiar gases','Filtrar sangre'],r:2,nv:'Medio',c:'Ser humano y salud'},
+      {t:'¿Qué ocurre cuando se tala un bosque?',o:['Mejora el suelo','Se pierden hábitats y aumenta la erosión','Los animales mejoran','Llueve más'],r:1,nv:'Alto',c:'Entorno vivo'},
+      {t:'¿Cuál es el ciclo del agua?',o:['Nube→lluvia→suelo→evaporación→nube','Río→lago→mar→tierra','Lluvia→nube→hielo→vapor','Tierra→planta→animal→humano'],r:0,nv:'Alto',c:'Entorno físico'},
+    ],
+    'Ciencias Sociales': [
+      {t:'¿Cuál es la capital de Colombia?',o:['Medellín','Cali','Bogotá','Barranquilla'],r:2,nv:'Básico',c:'Pensamiento social'},
+      {t:'¿Qué es una comunidad?',o:['Un edificio','Personas que viven y comparten un lugar','Un individuo','Un país'],r:1,nv:'Básico',c:'Pensamiento social'},
+      {t:'¿Cuál símbolo tiene tres franjas de colores?',o:['El escudo','El himno','La bandera','El mapa'],r:2,nv:'Básico',c:'Pensamiento social'},
+      {t:'¿Qué es el municipio?',o:['Una vereda','Una región grande','División territorial con alcalde','Un departamento'],r:2,nv:'Medio',c:'Pensamiento social'},
+      {t:'¿Para qué sirven las normas?',o:['Para castigar','Para el orden y la convivencia','Para hacer lo que uno quiera','Para dividir'],r:1,nv:'Básico',c:'Pensamiento ciudadano'},
+      {t:'¿Qué es el mapa?',o:['Un dibujo decorativo','Una representación del territorio','Un libro','Una fotografía'],r:1,nv:'Básico',c:'Pensamiento espacial'},
+      {t:'¿Cuál es la función del alcalde?',o:['Dirigir el ejército','Gobernar un municipio','Hacer leyes del país','Presidir el departamento'],r:1,nv:'Medio',c:'Pensamiento social'},
+      {t:'¿Qué zona tiene selvas y el río Amazonas?',o:['Andina','Caribe','Pacífica','Amazónica'],r:3,nv:'Medio',c:'Pensamiento espacial'},
+      {t:'La vereda es parte de...',o:['Un país extranjero','Un municipio','Un continente','Una capital'],r:1,nv:'Medio',c:'Pensamiento social'},
+      {t:'¿Qué es la cultura?',o:['Solo música','Solo comida','Costumbres y formas de vida de un grupo','Un trabajo'],r:2,nv:'Alto',c:'Pensamiento social'},
+      {t:'¿Cuál es el deber de un buen ciudadano?',o:['Hacer lo que quiera','Respetar normas y a los demás','No participar','Ignorar vecinos'],r:1,nv:'Básico',c:'Pensamiento ciudadano'},
+      {t:'¿Cómo se resuelve un conflicto?',o:['No tiene solución','Con diálogo y respeto','Siempre con violencia','Es un juego'],r:1,nv:'Alto',c:'Pensamiento ciudadano'},
+      {t:'¿Cuáles son las regiones de Colombia?',o:['Norte,Sur,Este,Oeste','Andina,Caribe,Pacífica,Orinoquía,Amazónica,Insular','Solo Andina y Caribe','Montaña,Llanura,Selva'],r:1,nv:'Alto',c:'Pensamiento espacial'},
+      {t:'¿Qué significa diversidad?',o:['Que todo es igual','Una sola forma de ser','Muchas diferencias valiosas','Que hay división'],r:2,nv:'Alto',c:'Pensamiento ciudadano'},
+      {t:'¿Por qué es importante votar?',o:['No es importante','Es obligatorio','Para elegir representantes','Porque pagan'],r:2,nv:'Alto',c:'Pensamiento ciudadano'},
+    ],
+  };
+  const banco = {};
+  AREAS.forEach(a => {
+    banco[a] = p[a].slice(0,n).map((q,i) => ({id:i+1,texto:q.t,opciones:q.o,correcta:q.r,nivel:q.nv,competencia:q.c,area:a}));
+  });
+  return banco;
+}
+
+let estado = {nombre:'',grado:'',banco:{},areaActual:0,respuestas:{}};
+
+// PENDIENTES
+function getPendientes() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); } catch { return []; } }
+function guardarPendiente(d) { const p=getPendientes(); p.push(d); localStorage.setItem(STORAGE_KEY,JSON.stringify(p)); }
+function limpiarPendientes() { localStorage.removeItem(STORAGE_KEY); }
+
+function mostrarAvisoPendientes() {
+  const p = getPendientes();
+  const av = document.getElementById('aviso-pendientes');
+  if (p.length > 0) {
+    av.style.display='block';
+    document.getElementById('texto-pendientes').textContent=`Hay ${p.length} evaluación(es) guardada(s) sin enviar a Sheets.`;
+  } else { av.style.display='none'; }
+}
+
+async function sincronizarPendientes() {
+  const pendientes = getPendientes();
+  if (!pendientes.length) return;
+  const el = document.getElementById('estado-sync-inicio');
+  el.style.display='block'; el.className='estado-sync sync-enviando'; el.textContent='⏳ Enviando...';
+  let ok=0;
+  for (const d of pendientes) { if (await enviarDatos(d)) ok++; }
+  if (ok===pendientes.length) {
+    limpiarPendientes(); el.className='estado-sync sync-ok'; el.textContent=`✅ ${ok} evaluación(es) enviadas.`;
+    setTimeout(()=>mostrarAvisoPendientes(),2000);
+  } else {
+    el.className='estado-sync sync-error'; el.textContent=`⚠️ Solo ${ok} de ${pendientes.length} enviadas. Intenta de nuevo.`;
+  }
+}
+
+async function enviarDatos(datos) {
+  try {
+    const r = await fetch(SHEETS_URL, {method:'POST', body:JSON.stringify(datos), headers:{'Content-Type':'application/json'}});
+    const j = await r.json(); return j.ok===true;
+  } catch { return false; }
+}
+
+window.onload = () => mostrarAvisoPendientes();
+
+function iniciarEvaluacion() {
+  const nombre = document.getElementById('input-nombre').value.trim();
+  const grado = document.getElementById('input-grado').value;
+  if (!nombre) { alert('Por favor escribe tu nombre.'); return; }
+  if (!grado) { alert('Por favor selecciona tu grado.'); return; }
+  estado = {nombre, grado, banco:crearPreguntas(parseInt(grado)), areaActual:0, respuestas:{}};
+  document.getElementById('nombre-display').textContent=nombre;
+  document.getElementById('grado-display').textContent=grado;
+  construirTabs(); construirPreguntas(); mostrarArea(0); actualizarProgreso();
+  document.getElementById('pantalla-inicio').style.display='none';
+  document.getElementById('pantalla-evaluacion').style.display='block';
+  window.scrollTo(0,0);
+}
+
+function construirTabs() {
+  const cont=document.getElementById('tabs-areas'); cont.innerHTML='';
+  AREAS.forEach((area,i)=>{
+    const n=estado.banco[area].length;
+    const btn=document.createElement('div');
+    btn.className='tab-area'+(i===0?' activo':''); btn.id=`tab-${i}`;
+    btn.innerHTML=`${area} <span class="badge" id="badge-${i}">0/${n}</span>`;
+    btn.onclick=()=>mostrarArea(i); cont.appendChild(btn);
+  });
+}
+
+function construirPreguntas() {
+  const cont=document.getElementById('contenedor-preguntas'); cont.innerHTML='';
+  AREAS.forEach((area,ai)=>{
+    const sec=document.createElement('div');
+    sec.className='seccion-preguntas'+(ai===0?' activa':''); sec.id=`seccion-${ai}`;
+    estado.banco[area].forEach((preg,pi)=>{
+      const nvC=preg.nivel==='Básico'?'nivel-basico':preg.nivel==='Medio'?'nivel-medio':'nivel-alto';
+      const letras=['A','B','C','D'];
+      const ops=preg.opciones.map((op,oi)=>`
+        <label class="opcion-label" id="lbl-${ai}-${pi}-${oi}" onclick="seleccionarOpcion('${area}',${ai},${pi},${oi})">
+          <input type="radio" name="p${ai}-${pi}" value="${oi}">
+          <div class="opcion-circulo">${letras[oi]}</div><span>${op}</span>
+        </label>`).join('');
+      const card=document.createElement('div');
+      card.className='pregunta-card'; card.id=`card-${ai}-${pi}`;
+      card.innerHTML=`<div class="pregunta-meta"><span class="num-pregunta">Pregunta ${pi+1}</span><span class="nivel-badge ${nvC}">${preg.nivel}</span><span class="competencia-tag">${preg.competencia}</span></div><div class="texto-pregunta">${preg.texto}</div><div class="opciones">${ops}</div>`;
+      sec.appendChild(card);
+    });
+    cont.appendChild(sec);
+  });
+}
+
+function seleccionarOpcion(area,ai,pi,oi) {
+  estado.respuestas[`${area}-${pi}`]=oi;
+  const preg=estado.banco[area][pi];
+  preg.opciones.forEach((_,idx)=>document.getElementById(`lbl-${ai}-${pi}-${idx}`)?.classList.remove('seleccionada'));
+  document.getElementById(`lbl-${ai}-${pi}-${oi}`)?.classList.add('seleccionada');
+  document.getElementById(`card-${ai}-${pi}`)?.classList.add('respondida');
+  actualizarProgreso(); actualizarBadge(ai); verificarCompletado(ai);
+}
+
+function mostrarArea(idx) {
+  document.querySelectorAll('.seccion-preguntas').forEach(s=>s.classList.remove('activa'));
+  document.querySelectorAll('.tab-area').forEach(t=>t.classList.remove('activo'));
+  document.getElementById(`seccion-${idx}`)?.classList.add('activa');
+  document.getElementById(`tab-${idx}`)?.classList.add('activo');
+  estado.areaActual=idx;
+  document.getElementById('btn-anterior').style.visibility=idx===0?'hidden':'visible';
+  document.getElementById('btn-siguiente').style.visibility=idx===AREAS.length-1?'hidden':'visible';
+  window.scrollTo(0,0);
+}
+
+function cambiarArea(dir) { const n=estado.areaActual+dir; if(n>=0&&n<AREAS.length) mostrarArea(n); }
+
+function actualizarProgreso() {
+  const total=AREAS.reduce((s,a)=>s+estado.banco[a].length,0);
+  const resp=Object.keys(estado.respuestas).length;
+  document.getElementById('texto-progreso').textContent=`${resp} / ${total}`;
+  document.getElementById('barra-progreso').style.width=`${(resp/total)*100}%`;
+  document.getElementById('btn-terminar').disabled=resp<total;
+}
+
+function actualizarBadge(ai) {
+  const area=AREAS[ai], total=estado.banco[area].length;
+  const resp=estado.banco[area].filter((_,pi)=>estado.respuestas[`${area}-${pi}`]!==undefined).length;
+  document.getElementById(`badge-${ai}`).textContent=`${resp}/${total}`;
+}
+
+function verificarCompletado(ai) {
+  const area=AREAS[ai], total=estado.banco[area].length;
+  const resp=estado.banco[area].filter((_,pi)=>estado.respuestas[`${area}-${pi}`]!==undefined).length;
+  const tab=document.getElementById(`tab-${ai}`);
+  if(resp===total) tab.classList.add('completado'); else tab.classList.remove('completado');
+}
+
+function terminarEvaluacion() {
+  let totalC=0, totalP=0;
+  const resPorArea={}, falencias=[], detalle=[];
+  AREAS.forEach(area=>{
+    let aC=0;
+    estado.banco[area].forEach((preg,pi)=>{
+      const ri=estado.respuestas[`${area}-${pi}`];
+      const ok=ri===preg.correcta;
+      if(ok) aC++; else falencias.push({area,pregunta:`P${pi+1}: ${preg.texto.substring(0,50)}...`,nivel:preg.nivel,competencia:preg.competencia});
+      detalle.push({area,pregunta:pi+1,texto:preg.texto,respuesta:preg.opciones[ri]||'',correcta:ok?'SÍ':'NO',nivel:preg.nivel,competencia:preg.competencia});
+    });
+    resPorArea[area]={correctas:aC,total:estado.banco[area].length};
+    totalC+=aC; totalP+=estado.banco[area].length;
+  });
+  const pct=Math.round((totalC/totalP)*100);
+  const resumen={};
+  AREAS.forEach(a=>{ const {correctas:c,total:t}=resPorArea[a]; resumen[a]=`${c}/${t} (${Math.round(c/t*100)}%)`; });
+
+  window._datosEval={fecha:new Date().toLocaleDateString('es-CO'),nombre:estado.nombre,grado:`${estado.grado}°`,puntajeTotal:`${pct}%`,resumen,respuestas:detalle};
+  window._resultados={resPorArea,falencias,pct};
+
+  document.getElementById('pantalla-evaluacion').style.display='none';
+  document.getElementById('pantalla-resultados').style.display='block';
+  window.scrollTo(0,0);
+
+  document.getElementById('res-nombre').textContent=`${estado.nombre} — Grado ${estado.grado}°`;
+  document.getElementById('res-puntaje').textContent=`${pct}%`;
+
+  const contA=document.getElementById('resultado-areas'); contA.innerHTML='';
+  AREAS.forEach(area=>{
+    const {correctas:c,total:t}=resPorArea[area], p=Math.round((c/t)*100), col=COLORES[area];
+    const card=document.createElement('div'); card.className='resultado-area-card';
+    card.innerHTML=`<div class="area-nombre">${area}</div><div class="area-puntaje" style="color:${col}">${p}%</div><div class="area-de">${c} de ${t} correctas</div><div class="barra-area"><div class="barra-area-fill" style="width:${p}%;background:${col}"></div></div>`;
+    contA.appendChild(card);
+  });
+
+  const listaF=document.getElementById('lista-falencias'); listaF.innerHTML='';
+  if(!falencias.length) { listaF.innerHTML='<p style="color:var(--verde);font-weight:700;text-align:center;">¡Todas correctas! 🎉</p>'; }
+  else {
+    falencias.slice(0,10).forEach(f=>{
+      const nvC=f.nivel==='Básico'?'nivel-basico':f.nivel==='Medio'?'nivel-medio':'nivel-alto';
+      const item=document.createElement('div'); item.className='falencia-item';
+      item.innerHTML=`<div><div>${f.pregunta}</div><div class="falencia-area">${f.area} · ${f.competencia}</div></div><span class="falencia-nivel ${nvC}">${f.nivel}</span>`;
+      listaF.appendChild(item);
+    });
+    if(falencias.length>10) listaF.innerHTML+=`<p style="text-align:center;color:var(--gris);font-size:13px;margin-top:10px;">+${falencias.length-10} más en el CSV</p>`;
+  }
+}
+
+async function enviarASheets() {
+  const btn=document.getElementById('btn-sheets');
+  const el=document.getElementById('estado-sync-resultado');
+  btn.disabled=true; btn.textContent='⏳ Enviando...';
+  el.style.display='block'; el.className='estado-sync sync-enviando'; el.textContent='Conectando con Google Sheets...';
+  const ok=await enviarDatos(window._datosEval);
+  if(ok) { el.className='estado-sync sync-ok'; el.textContent='✅ ¡Datos enviados a Google Sheets!'; btn.textContent='✅ Enviado'; }
+  else {
+    guardarPendiente(window._datosEval);
+    el.className='estado-sync sync-error'; el.textContent='⚠️ Sin conexión. Guardado localmente. Envíalo desde inicio cuando haya señal.';
+    btn.disabled=false; btn.textContent='🔄 Reintentar';
+  }
+}
+
+function descargarCSV() {
+  const d=window._datosEval;
+  const filas=[['Fecha','Nombre','Grado','Área','Pregunta','Texto','Respuesta','Correcta','Nivel','Competencia'].join(',')];
+  d.respuestas.forEach(r=>filas.push([d.fecha,`"${d.nombre}"`,d.grado,`"${r.area}"`,r.pregunta,`"${r.texto.replace(/"/g,"'")}"`,`"${r.respuesta.replace(/"/g,"'")}"`,r.correcta,r.nivel,`"${r.competencia}"`].join(',')));
+  filas.push('',['RESUMEN','Puntaje',d.puntajeTotal,'','','','','','',''].join(','));
+  AREAS.forEach(a=>filas.push([`"${a}"`,d.resumen[a],'','','','','','','',''].join(',')));
+  const blob=new Blob(['\uFEFF'+filas.join('\n')],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=`eval_${d.nombre.replace(/\s+/g,'_')}_grado${estado.grado}.csv`; a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
